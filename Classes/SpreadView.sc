@@ -2,6 +2,7 @@ SpreadView : ValuesView {
 	var <innerRadiusRatio, <outerRadiusRatio, boarderPx;
 	var <bnds, <cen, <maxRadius, <innerRadius, <outerRadius, <wedgeWidth; // set in drawFunc, for access by drawing layers
 	var <handlePnts;
+	var <>clickRangePx = 4;
 	var <direction, <rangeCenterOffset;
 	var <dirFlag; 				// cw=1, ccw=-1
 	var <rangeStartAngle, <rangeSweepLength, <prRangeSweepLength, <prRangeStartAngle;
@@ -174,23 +175,44 @@ SpreadView : ValuesView {
 	}
 
 	defineMouseActions {
+		var clicked, adjustLo, adjustCen, adjustHi;
+		clicked = adjustLo = adjustCen = adjustHi = false;
+
 		// assign action variables: down/move
 		mouseDownAction = {
 			|v, x, y|
 			var dpnt;
 
 			dpnt = x@y;
-			handlePnts.do{|hpnt, i|
-				if (hpnt.dist(dpnt) < 5) {
-					postf("near %\n", i)
-				};
+
+			block { |break|
+
+				handlePnts.do{|hpnt, i|
+					if (hpnt.dist(dpnt) < clickRangePx) {
+						clicked = true;
+						switch(i,
+							0, {adjustLo = true},
+							1, {adjustCen = true},
+							2, {adjustHi = true},
+						);
+						break.()
+					};
+				}
 			}
 		};
 
 		mouseMoveAction  = {
 			|v, x, y|
-			this.respondToCircularMove(x@y)
+			if (clicked) {
+				this.respondToCircularMove(x@y)
+			};
 		};
+
+		mouseUpAction = {
+			|v, x, y|
+			adjustLo = adjustCen = adjustHi = false;
+			"lifted".postln;
+		}
 	}
 
 	// radial change, relative to center
@@ -325,26 +347,12 @@ SprdHandleLayer : ValueViewLayer {
 		var d, rho;
 
 		Pen.push;
-
 		d = if (p.radius<1){p.radius*view.outerRadius}{p.radius} * 2;
 		Pen.fillColor_(p.fillColor);
 
 		view.handlePnts.do{|pnt|
 			Pen.fillOval([0,0,d,d].asRect.center_(pnt))
 		};
-
-		// Pen.translate(view.cen.x, view.cen.y);
-		// rho = view.outerRadius * p.anchor;
-
-		// // for [lo, center, hi], do
-		// [view.inputs[3], view.inputs[1], view.inputs[4]].do{ |rot|
-		// 	Pen.push;
-		// 	Pen.rotate(view.prRangeStartAngle + (rot * view.prRangeSweepLength));
-		// 	Pen.fillColor_(p.fillColor);
-		// 	Pen.fillOval( [0,0, d,d].asRect.center_(rho@0));
-		// 	Pen.pop;
-		// };
-
 		Pen.pop;
 	}
 
