@@ -1,43 +1,49 @@
 SpreadView : ValuesView {
-	var <bnds, <cen, <maxRadius, <innerRadius, <outerRadius, <wedgeWidth; // set in drawFunc, for access by drawing layers
-	var <direction, <rangeCenterOffset, <orientation, <startAngle, <sweepLength;
+	var <innerRadiusRatio, <outerRadiusRatio, boarderPx;
+	var <bnds, <cen, <minDim, <maxRadius, <innerRadius, <outerRadius, <wedgeWidth; // set in drawFunc, for access by drawing layers
+	var <direction, <rangeCenterOffset;
 	var <dirFlag; 				// cw=1, ccw=-1
-	var <prStartAngle;
+	var <rangeStartAngle, <rangeSweepLength, <prRangeSweepLength, <prRangeStartAngle;
 
+	// drawing layers. Add getters to get/set individual properties by '.p'
+	var <range, <sprd, <bnds, <curvalue, <label;
 	/*
-	specs, initVals: order of values in arrays - [value, center, spread, lo, hi], lo and hi can be nil to autofill from center/spread
-	rangeCenterOffset: offset of "0" position from default (0 o'clock), radians
+	spreadSpec: spec describing spread in radians, other specs will be inferred from this
+	initVals: order of values in arrays - [value, center, spread, lo, hi], lo and hi can be nil to autofill from center/spread
+	rangeCenterOffset: offset of "0" position from default (0 o'clock), degrees
 	innerRadiusRatio=0: ratio of inner space
 	outerRadiusRatio=1; ratio of outer edge of spread wedge
 	*/
 
 	*new {
-		|parent, bounds, specs, initVals, rangeCenterOffset=0, innerRadiusRatio=0, outerRadiusRatio=1|
-		^super.new(parent, bounds, specs, initVals).init(rangeCenterOffset, innerRadiusRatio, outerRadiusRatio);
+		|parent, bounds, maxSpread, initVals, rangeCenterOffset=0, innerRadiusRatio=0, outerRadiusRatio=1|
+		^super.new(parent, bounds, nil, initVals).init(rangeCenterOffset, innerRadiusRatio, outerRadiusRatio, maxSpread, initVals);
 	}
 
 
 	init {
-		|argRangeCenterOffset, argStartAngle, argSweepLength, argInnerRadiusRatio, argOuterRadiusRatio|
+		|argRangeCenterOffset, argInnerRadiusRatio, argOuterRadiusRatio, maxSpread, initVals|
 		// REQUIRED: in subclass init, initialize drawing layers
 		// initialize layer classes and save them to vars
-		#range, spread, bounds, curvalue, label = [
+		#range, sprd, bnds, curvalue, label = [
 			SprdRangeLayer, SprdSpreadLayer, SprdBoudndsLayer, SprdCurvalueLayer, SprdLabelLayer
 		].collect({
 			|class|
 			class.new(this, class.properties)
 		});
 		// convenience variable to access a list of the layers
-		layers = [range, spread, bounds, curvalue, label];
+		layers = [range, sprd, bnds, curvalue, label];
 
 		rangeCenterOffset = argRangeCenterOffset;
-		startAngle = argStartAngle;		// reference 0 is UP
-		sweepLength = argSweepLength;
+
 		direction = \cw;
 		dirFlag = 1;
-		orientation = \vertical;
-		clickMode = \relative;			// or \absolute
 		boarderPx = 1;
+
+		this.initSpecsAndVals(maxSpread, initVals);
+
+		this.rangeStartAngle = maxSpread.half.neg;		// reference 0 is UP
+		this.rangeSweepLength = maxSpread;
 
 		this.innerRadiusRatio_(argInnerRadiusRatio); // set innerRadiusRatio with setter to check sweepLength condition
 		this.outerRadiusRatio_(argOuterRadiusRatio);
@@ -52,6 +58,82 @@ SpreadView : ValuesView {
 		this.direction_(direction);  // this initializes prStarAngle and prSweepLength
 	}
 
+	// initialize [value, center, spread, lo, hi] specs and values
+	initSpecsAndVals { |maxSpread, initVals|
+		var lo, hi, valSpec, cenSpec, sprdSpec, loSpec, hiSpec, spcs;
+		var v, c, s, l, h;
+		var initError;
+
+		// re-initialize specs
+		lo = maxSpread.half.neg;
+		hi = maxSpread.half;
+		valSpec = [lo, hi].asSpec;
+		cenSpec = [lo, hi].asSpec;
+		sprdSpec = [0, maxSpread].asSpec;
+		loSpec = [lo, hi].asSpec;
+		hiSpec = [lo, hi].asSpec;
+		// reset specs instance variable to be the array of specs
+		spcs = [valSpec, cenSpec, sprdSpec, loSpec, hiSpec];
+
+		spcs.do{|spec, i| this.specAt_(i, spec, false)};
+
+		// re-initialize values
+		// NOTE: center/spread vals take precedence over lo/hi
+		#v, c, s, l, h = initVals;
+
+		initError = {
+			format(
+				"Provide intial values for either center/spread or lo/hi. Provided: center % spread % lo % hi %\n",
+				c, s, l, h
+			).throw
+		};
+
+		if (c.isNil or: s.isNil) {
+			if (l.isNil or: h.isNil) {initError.()} {
+				// make sure both are specified
+				if (l.notNil and: h.notNil) {initError.()};
+				// define c, s by l, h
+				c = l + (h-l).half;
+				s = h-l;
+			}
+		} {
+			// make sure both are specified
+			if (c.notNil and: s.notNil) {
+				l = c - s.half;
+				h = c + s.half;
+			} {initError.()};
+		};
+
+		// re-init values by spread and center
+		this.curValue_(v, false);
+		this.spread_(s, false);
+		this.center_(c, true);
+	}
+
+	curValue_ { |deg, broadcast=true|
+		this.valueAt_(0, deg, broadcast)
+	}
+	curValue { ^this.valueAt(0) }
+
+	center_ { |deg, broadcast=true|
+		this.valueAt_(1, deg, broadcast)
+	}
+	center { ^this.valueAt(1) }
+
+	spread_ { |deg, broadcast=true|
+		this.valueAt_(2, deg, broadcast)
+	}
+	spread { ^this.valueAt(2) }
+
+	lo_ { |deg, broadcast=true|
+		this.valueAt_(3, deg, broadcast)
+	}
+	lo { ^this.valueAt(3) }
+
+	hi_ { |deg, broadcast=true|
+		this.valueAt_(4, deg, broadcast)
+	}
+	hi { ^this.valueAt(4) }
 
 	drawFunc {
 		^{|v|
@@ -64,39 +146,83 @@ SpreadView : ValuesView {
 	}
 
 	drawInThisOrder {
-		^{|v|
-			// "global" instance vars, accessed by layers
-			bnds = v.bounds;
-			cen  = bnds.center;
-			maxRadius = min(cen.x, cen.y) - boarderPx;
-			outerRadius = maxRadius * outerRadiusRatio;
-			innerRadius = maxRadius * innerRadiusRatio;
-			wedgeWidth = outerRadius - innerRadius;
-			this.drawInThisOrder;
-		}
+		if (range.show) {range.fill};
+	}
+
+	defineMouseActions {
+		// assign action variables: down/move
+		mouseDownAction = {
+			|v, x, y|
+			// stValue = value;
+			// stInput = input;
+			// if (clickMode=='absolute') {this.respondToAbsoluteClick};
+		};
+
+		mouseMoveAction  = {
+			|v, x, y|
+			this.respondToCircularMove(x@y)
+		};
+	}
+
+	// radial change, relative to center
+	respondToCircularMove {|mMovePnt|
+		// var pos, rad, radRel;
+		// pos = (mMovePnt - cen);
+		// rad = atan2(pos.y,pos.x);					// radian position, relative 0 at 3 o'clock
+		// radRel = rad + 0.5pi * dirFlag; 	// relative 0 at 12 o'clock, clockwise
+		// radRel = (radRel - (startAngle*dirFlag)).wrap(0, 2pi); // relative to start position
+		// if (radRel.inRange(0, sweepLength)) {
+		// 	this.inputAction_(radRel/sweepLength); // triggers refresh
+		// 	stValue = value;
+		// 	stInput = input;
+		// };
+	}
+
+	respondToAbsoluteClick {
+
+		/* identify if near handles */
+
+		// var pos, rad, radRel;
+		// pos = (mouseDownPnt - cen);
+		// rad = atan2(pos.y,pos.x);					// radian position, relative 0 at 3 o'clock
+		// radRel = rad + 0.5pi * dirFlag;		// relative 0 at 12 o'clock, clockwise
+		// radRel = (radRel - (startAngle*dirFlag)).wrap(0, 2pi);	// relative to start position
+		// if (radRel.inRange(0, sweepLength)) {
+		// 	this.inputAction_(radRel/sweepLength); // triggers refresh
+		// 	stValue = value;
+		// 	stInput = input;
+		// };
 	}
 
 	direction_ {|dir=\cw|
 		direction = dir;
 		dirFlag = switch (direction, \cw, {1}, \ccw, {-1});
-		this.startAngle_(startAngle);
-		this.sweepLength_(sweepLength);		// updates prSweepLength
+		this.rangeStartAngle_(rangeStartAngle);
+		this.rangeSweepLength_(rangeSweepLength);		// updates prSweepLength
 		this.refresh;
 	}
 
-	rangeStartAngle_ {|radians=0|
-		startAngle = radians;
-		prStartAngle = -0.5pi + rangeCenterOffset + startAngle;		// start angle always relative to 0 is up, cw
-		this.setPrCenter;
-		this.ticksAtValues_(majTickVals, minTickVals, false);		// refresh the list of maj/minTicks positions
+	rangeStartAngle_ {|deg=0|
+		rangeStartAngle = deg;
+		prRangeStartAngle = -0.5pi + rangeCenterOffset.degrad + rangeStartAngle.degrad;		// start angle always relative to 0 is up, cw
 	}
 
-	sweepLength_ {|radians=2pi|
-		sweepLength = radians;
-		prSweepLength = sweepLength * dirFlag;
-		this.setPrCenter;
+	rangeSweepLength_ {|deg=360|
+		rangeSweepLength = deg;
+		"asdf".postln;
+		dirFlag.postln;
+		prRangeSweepLength = rangeSweepLength.degrad * dirFlag;
 		this.innerRadiusRatio_(innerRadiusRatio); // update innerRadiusRatio in case this was set to 0
-		this.ticksAtValues_(majTickVals, minTickVals, false); // refresh the list of maj/minTicks positions
+	}
+
+	innerRadiusRatio_ {|ratio|
+		innerRadiusRatio = if (ratio == 0) {1e-5} {ratio};
+		this.refresh
+	}
+
+	outerRadiusRatio_ {|ratio|
+		outerRadiusRatio = ratio;
+		this.refresh
 	}
 }
 
@@ -107,10 +233,10 @@ SprdRangeLayer : RotaryArcWedgeLayer {
 		^(
 			show:					true,					// show this layer or not
 			style:				\wedge,				// \wedge or \arc: annularWedge or arc
-																	// note if \arc, the width follows .width, not strokeWidth
+			// note if \arc, the width follows .width, not strokeWidth
 			width:				1,						// width of either annularWedge or arc; relative to wedgeWidth
 			radius:				1,						// outer edge of the wedge or arc; relative to maxRadius
-																	// TODO: rename this?
+			// TODO: rename this?
 			fill:		 			true,					// if annularWedge
 			fillColor:		Color.gray.alpha_(0.3),
 			stroke:				true,
@@ -123,11 +249,34 @@ SprdRangeLayer : RotaryArcWedgeLayer {
 	}
 
 	fill {
-		this.fillFromLength(view.prStartAngle, view.prSweepLength)
+		this.fillFromLength(view.prRangeStartAngle, view.prRangeSweepLength)
 	}
 }
 
-SprdSpreadLayer
-SprdBoudndsLayer
-SprdCurvalueLayer
-SprdLabelLayer
+SprdSpreadLayer : ValueViewLayer {
+	*properties {
+		^(
+		)
+	}
+}
+
+SprdBoudndsLayer : ValueViewLayer {
+	*properties {
+		^(
+		)
+	}
+}
+
+SprdCurvalueLayer : ValueViewLayer {
+	*properties {
+		^(
+		)
+	}
+}
+
+SprdLabelLayer : ValueViewLayer {
+	*properties {
+		^(
+		)
+	}
+}
