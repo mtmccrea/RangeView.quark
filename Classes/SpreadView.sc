@@ -1,12 +1,13 @@
 SpreadView : ValuesView {
 	var <innerRadiusRatio, <outerRadiusRatio, boarderPx;
-	var <bnds, <cen, <minDim, <maxRadius, <innerRadius, <outerRadius, <wedgeWidth; // set in drawFunc, for access by drawing layers
+	var <bnds, <cen, <maxRadius, <innerRadius, <outerRadius, <wedgeWidth; // set in drawFunc, for access by drawing layers
+	var <handlePnts;
 	var <direction, <rangeCenterOffset;
 	var <dirFlag; 				// cw=1, ccw=-1
 	var <rangeStartAngle, <rangeSweepLength, <prRangeSweepLength, <prRangeStartAngle;
 
 	// drawing layers. Add getters to get/set individual properties by '.p'
-	var <range, <sprd, <bnds, <curvalue, <label;
+	var <range, <sprd, <handle, <curvalue, <label;
 	/*
 	spreadSpec: spec describing spread in radians, other specs will be inferred from this
 	initVals: order of values in arrays - [value, center, spread, lo, hi], lo and hi can be nil to autofill from center/spread
@@ -25,14 +26,14 @@ SpreadView : ValuesView {
 		|argRangeCenterOffset, argInnerRadiusRatio, argOuterRadiusRatio, maxSpread, initVals|
 		// REQUIRED: in subclass init, initialize drawing layers
 		// initialize layer classes and save them to vars
-		#range, sprd, bnds, curvalue, label = [
-			SprdRangeLayer, SprdSpreadLayer, SprdBoudndsLayer, SprdCurvalueLayer, SprdLabelLayer
+		#range, sprd, handle, curvalue, label = [
+			SprdRangeLayer, SprdSpreadLayer, SprdHandleLayer, SprdCurvalueLayer, SprdLabelLayer
 		].collect({
 			|class|
 			class.new(this, class.properties)
 		});
 		// convenience variable to access a list of the layers
-		layers = [range, sprd, bnds, curvalue, label];
+		layers = [range, sprd, handle, curvalue, label];
 
 		rangeCenterOffset = argRangeCenterOffset;
 
@@ -106,8 +107,10 @@ SpreadView : ValuesView {
 
 		// re-init values by spread and center
 		this.curValue_(v, false);
+		this.center_(c, false);
 		this.spread_(s, false);
-		this.center_(c, true);
+		this.lo_(l, false);
+		this.hi_(h, true);
 	}
 
 	curValue_ { |deg, broadcast=true|
@@ -140,22 +143,48 @@ SpreadView : ValuesView {
 			// "global" instance vars, accessed by ValueViewLayers
 			bnds = v.bounds;
 			cen  = bnds.center;
-			minDim = min(bnds.width, bnds.height);
+			maxRadius = min(cen.x, cen.y) - boarderPx;
+			outerRadius = maxRadius * outerRadiusRatio;
+			innerRadius = maxRadius * innerRadiusRatio;
+			wedgeWidth = outerRadius - innerRadius;
+
+			this.calcHandlePnts;
+
 			this.drawInThisOrder;
 		};
 	}
 
+	calcHandlePnts {
+		// lo, center, hi
+		handlePnts = [inputs[3], inputs[1], inputs[4]].collect{ |rot|
+			var theta, rho;
+			theta = prRangeStartAngle + (rot * prRangeSweepLength);
+			rho = outerRadius * handle.p.anchor;
+			Polar(rho, theta).asPoint + cen;
+		};
+	}
+
 	drawInThisOrder {
-		if (range.show) {range.fill};
+		if (range.p.show) {range.fill};
+		if (sprd.p.show) {sprd.fill};
+		if (handle.p.show) {
+			if (handle.p.fill) {handle.fill};
+			if (handle.p.stroke) {handle.stroke};
+		};
 	}
 
 	defineMouseActions {
 		// assign action variables: down/move
 		mouseDownAction = {
 			|v, x, y|
-			// stValue = value;
-			// stInput = input;
-			// if (clickMode=='absolute') {this.respondToAbsoluteClick};
+			var dpnt;
+
+			dpnt = x@y;
+			handlePnts.do{|hpnt, i|
+				if (hpnt.dist(dpnt) < 5) {
+					postf("near %\n", i)
+				};
+			}
 		};
 
 		mouseMoveAction  = {
@@ -209,8 +238,6 @@ SpreadView : ValuesView {
 
 	rangeSweepLength_ {|deg=360|
 		rangeSweepLength = deg;
-		"asdf".postln;
-		dirFlag.postln;
 		prRangeSweepLength = rangeSweepLength.degrad * dirFlag;
 		this.innerRadiusRatio_(innerRadiusRatio); // update innerRadiusRatio in case this was set to 0
 	}
@@ -236,7 +263,6 @@ SprdRangeLayer : RotaryArcWedgeLayer {
 			// note if \arc, the width follows .width, not strokeWidth
 			width:				1,						// width of either annularWedge or arc; relative to wedgeWidth
 			radius:				1,						// outer edge of the wedge or arc; relative to maxRadius
-			// TODO: rename this?
 			fill:		 			true,					// if annularWedge
 			fillColor:		Color.gray.alpha_(0.3),
 			stroke:				true,
@@ -253,17 +279,102 @@ SprdRangeLayer : RotaryArcWedgeLayer {
 	}
 }
 
-SprdSpreadLayer : ValueViewLayer {
+SprdSpreadLayer : RotaryArcWedgeLayer {
 	*properties {
 		^(
+			show:					true,					// show this layer or not
+			style:				\wedge,				// \wedge or \arc: annularWedge or arc
+			// note if \arc, the width follows .width, not strokeWidth
+			width:				1,						// width of either annularWedge or arc; relative to wedgeWidth
+			radius:				1,						// outer edge of the wedge or arc; relative to maxRadius
+			fill:		 			true,					// if annularWedge
+			fillColor:		Color.red.alpha_(0.3),
+			stroke:				true,
+			strokeColor:	Color.gray,
+			strokeType:		\around, 			// if style: \wedge; \inside, \outside, or \around
+			strokeWidth:	1, 						// if style: \wedge, if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
+			capStyle:			\round,				// if style: \arc
+			joinStyle:	 	0,						// if style: \wedge; 0=flat
+		)
+	}
+
+	fill {
+		this.fillFromLength(
+			view.prRangeStartAngle + (view.inputs[3] * view.prRangeSweepLength),
+			view.inputs[2] * view.prRangeSweepLength
 		)
 	}
 }
 
-SprdBoudndsLayer : ValueViewLayer {
+//
+SprdHandleLayer : ValueViewLayer {
 	*properties {
 		^(
+			show:					true,					// show this layer or not
+			anchor:				1.1,					// relative to outerRadius
+			radius:				0.05,					// if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
+			fill:		 			true,
+			fillColor:		Color.blue.alpha_(0.3),
+			stroke:				true,
+			strokeColor:	Color.black,
+			strokeWidth:	0.15, 						// ratio of radius
 		)
+	}
+
+	fill {
+		var d, rho;
+
+		Pen.push;
+
+		d = if (p.radius<1){p.radius*view.outerRadius}{p.radius} * 2;
+		Pen.fillColor_(p.fillColor);
+
+		view.handlePnts.do{|pnt|
+			Pen.fillOval([0,0,d,d].asRect.center_(pnt))
+		};
+
+		// Pen.translate(view.cen.x, view.cen.y);
+		// rho = view.outerRadius * p.anchor;
+
+		// // for [lo, center, hi], do
+		// [view.inputs[3], view.inputs[1], view.inputs[4]].do{ |rot|
+		// 	Pen.push;
+		// 	Pen.rotate(view.prRangeStartAngle + (rot * view.prRangeSweepLength));
+		// 	Pen.fillColor_(p.fillColor);
+		// 	Pen.fillOval( [0,0, d,d].asRect.center_(rho@0));
+		// 	Pen.pop;
+		// };
+
+		Pen.pop;
+	}
+
+	stroke {
+		var strokeWidth, d, rho;
+
+		Pen.push;
+		d = if (p.radius<1){p.radius*view.outerRadius}{p.radius} * 2;
+		strokeWidth = if (p.strokeWidth<1){p.strokeWidth*d}{p.strokeWidth};
+		Pen.width_(strokeWidth);
+		Pen.strokeColor_(p.strokeColor);
+
+		view.handlePnts.do{|pnt|
+			Pen.strokeOval([0,0,d,d].asRect.center_(pnt))
+		};
+
+		// Pen.translate(view.cen.x, view.cen.y);
+		// rho = view.outerRadius * p.anchor;
+		//
+		// // for [lo, center, hi], do
+		// [view.inputs[3], view.inputs[1], view.inputs[4]].do{ |rot|
+		// 	Pen.push;
+		// 	Pen.rotate(view.prRangeStartAngle + (rot * view.prRangeSweepLength));
+		// 	Pen.width_(strokeWidth);
+		// 	Pen.strokeColor_(p.strokeColor);
+		// 	Pen.strokeOval( [0,0, d,d].asRect.center_(rho@0));
+		// 	Pen.pop;
+		// };
+
+		Pen.pop;
 	}
 }
 
