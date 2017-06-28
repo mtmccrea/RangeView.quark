@@ -94,49 +94,90 @@ SpreadView : ValuesView {
 			if (l.isNil or: h.isNil) {initError.()} {
 				// make sure both are specified
 				if (l.notNil and: h.notNil) {initError.()};
-				// define c, s by l, h
-				c = l + (h-l).half;
-				s = h-l;
+				// this will update center and spread
+				this.lo_(l, false);
+				this.hi_(h, true);
 			}
 		} {
 			// make sure both are specified
 			if (c.notNil and: s.notNil) {
-				l = c - s.half;
-				h = c + s.half;
+				this.center_(c, false);
+				this.spread_(s, true);
 			} {initError.()};
 		};
-
 		// re-init values by spread and center
 		this.curValue_(v, false);
-		this.center_(c, false);
-		this.spread_(s, false);
-		this.lo_(l, false);
-		this.hi_(h, true);
 	}
 
 	curValue_ { |deg, broadcast=true|
 		this.valueAt_(0, deg, broadcast)
 	}
-	curValue { ^this.valueAt(0) }
-
-	center_ { |deg, broadcast=true|
-		this.valueAt_(1, deg, broadcast)
+	curValueAction_ { |deg|
+		this.valueAtAction_(0, deg)
 	}
-	center { ^this.valueAt(1) }
+
+	// the following setters are for setting each parameter
+	// anchored by it's opposite and updating the others
+	// i.e. center update: spread anchored, lo/hi auto-update
+	center_ { |deg, broadcast=true|
+		this.prUpdateLoHi(deg, this.spread, false);
+		this.valueAt_(1, deg, broadcast);
+	}
+	centerAction_ { |deg|
+		this.prUpdateLoHi(deg, this.spread, false);
+		this.valueAtAction_(1, deg);
+	}
 
 	spread_ { |deg, broadcast=true|
+		this.prUpdateLoHi(this.center, deg, false);
 		this.valueAt_(2, deg, broadcast)
 	}
-	spread { ^this.valueAt(2) }
+	spreadAction_ { |deg|
+		this.prUpdateLoHi(this.center, deg, false);
+		this.valueAtAction_(2, deg)
+	}
 
+	// if setting lo or hi explicitly, the opposite bound remains
+	// and center/spread is updated
 	lo_ { |deg, broadcast=true|
+		this.prUpdateCenSprd(deg, this.hi, false);
 		this.valueAt_(3, deg, broadcast)
 	}
-	lo { ^this.valueAt(3) }
+	loAction_ { |deg|
+		this.prUpdateCenSprd(deg, this.hi, false);
+		this.valueAtAction_(3, deg)
+	}
 
 	hi_ { |deg, broadcast=true|
+		this.prUpdateCenSprd(this.lo, deg, false);
 		this.valueAt_(4, deg, broadcast)
 	}
+	hiAction_ { |deg|
+		this.prUpdateCenSprd(this.lo, deg, false);
+		this.valueAtAction_(4, deg)
+	}
+
+	// update lo and hi by center/spread
+	prUpdateLoHi { |center, spread, broadcast|
+		var h_sprd;
+		h_sprd = spread.half;
+		this.valueAt_(3, center - h_sprd, broadcast); // lo
+		this.valueAt_(4, center + h_sprd, broadcast); // hi
+	}
+	// update center/spread by lo and hi
+	prUpdateCenSprd { |lo, hi, broadcast|
+		var sprd;
+		sprd = hi - lo;
+		// don't use convenience methods or else inf loop
+		this.valueAt_(1, sprd / 2, broadcast);  // cen
+		this.valueAt_(2, sprd, broadcast);			// sprd
+	}
+
+	// state getters
+	curValue { ^this.valueAt(0) }
+	center { ^this.valueAt(1) }
+	spread { ^this.valueAt(2) }
+	lo { ^this.valueAt(3) }
 	hi { ^this.valueAt(4) }
 
 	drawFunc {
@@ -156,12 +197,16 @@ SpreadView : ValuesView {
 	}
 
 	calcHandlePnts {
+		var thetas, bndrho, cenrho;
 		// lo, center, hi
-		handlePnts = [inputs[3], inputs[1], inputs[4]].collect{ |rot|
+		thetas = [inputs[3], inputs[1], inputs[4]].collect{ |rot|
 			var theta, rho;
 			theta = prRangeStartAngle + (rot * prRangeSweepLength);
-			rho = outerRadius * handle.p.anchor;
-			Polar(rho, theta).asPoint + cen;
+		};
+		bndrho = outerRadius * handle.p.anchorBnd;
+		cenrho = outerRadius * handle.p.anchorCen;
+		handlePnts = [bndrho, cenrho, bndrho].collect{|rho, i|
+			Polar(rho, thetas[i]).asPoint + cen;
 		};
 	}
 
@@ -175,20 +220,17 @@ SpreadView : ValuesView {
 	}
 
 	defineMouseActions {
-		var clicked, adjustLo, adjustCen, adjustHi;
+		var clicked, adjustLo, adjustCen, adjustHi, mDownPnt;
 		clicked = adjustLo = adjustCen = adjustHi = false;
 
 		// assign action variables: down/move
 		mouseDownAction = {
 			|v, x, y|
-			var dpnt;
-
-			dpnt = x@y;
+			mDownPnt = x@y;
 
 			block { |break|
-
 				handlePnts.do{|hpnt, i|
-					if (hpnt.dist(dpnt) < clickRangePx) {
+					if (hpnt.dist(mDownPnt) < clickRangePx) {
 						clicked = true;
 						switch(i,
 							0, {adjustLo = true},
@@ -203,15 +245,32 @@ SpreadView : ValuesView {
 
 		mouseMoveAction  = {
 			|v, x, y|
+			var pos, theta, posDeg;
 			if (clicked) {
-				this.respondToCircularMove(x@y)
+				pos = ((x@y) - cen);
+				theta = atan2(pos.y,pos.x); // radian position, relative 0 at 3 o'clock
+				// where in the range the mouse is
+				posDeg = specs[0].map(
+					(theta - prRangeStartAngle).wrap(0, 2pi) / prRangeSweepLength
+				);
+
+				case
+				{adjustLo} { // changes spread
+					this.spreadAction_(this.center - posDeg * 2);
+				}
+				{adjustHi} { // changes spread
+					this.spreadAction_(posDeg - this.center * 2);
+				}
+				{adjustCen} {
+					this.centerAction_(posDeg);
+				};
+				// this.respondToCircularMove(x@y)
 			};
 		};
 
 		mouseUpAction = {
 			|v, x, y|
-			adjustLo = adjustCen = adjustHi = false;
-			"lifted".postln;
+			clicked = adjustLo = adjustCen = adjustHi = false;
 		}
 	}
 
@@ -255,7 +314,7 @@ SpreadView : ValuesView {
 
 	rangeStartAngle_ {|deg=0|
 		rangeStartAngle = deg;
-		prRangeStartAngle = -0.5pi + rangeCenterOffset.degrad + rangeStartAngle.degrad;		// start angle always relative to 0 is up, cw
+		prRangeStartAngle = -0.5pi + (rangeCenterOffset + rangeStartAngle).degrad;		// start angle always relative to 0 is up, cw
 	}
 
 	rangeSweepLength_ {|deg=360|
@@ -333,7 +392,8 @@ SprdHandleLayer : ValueViewLayer {
 	*properties {
 		^(
 			show:					true,					// show this layer or not
-			anchor:				1.1,					// relative to outerRadius
+			anchorBnd:		1.1,					// relative to outerRadius
+			anchorCen:		1.2,					// relative to outerRadius
 			radius:				0.05,					// if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
 			fill:		 			true,
 			fillColor:		Color.blue.alpha_(0.3),
