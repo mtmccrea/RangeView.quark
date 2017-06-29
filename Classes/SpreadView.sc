@@ -1,8 +1,8 @@
 SpreadView : ValuesView {
 	var <innerRadiusRatio, <outerRadiusRatio, boarderPx;
 	var <bnds, <cen, <maxRadius, <innerRadius, <outerRadius, <wedgeWidth; // set in drawFunc, for access by drawing layers
-	var <handlePnts;
-	var <>clickRangePx = 4;
+	var <handlePnts, <handleThetas, <valTheta;
+	var clickRangePx;
 	var <direction, <rangeCenterOffset;
 	var <dirFlag; 				// cw=1, ccw=-1
 	var <rangeStartAngle, <rangeSweepLength, <prRangeSweepLength, <prRangeStartAngle;
@@ -55,6 +55,8 @@ SpreadView : ValuesView {
 		outerRadius = maxRadius*outerRadiusRatio;
 		innerRadius = maxRadius*innerRadiusRatio;
 		wedgeWidth = outerRadius-innerRadius;
+
+		clickRangePx = if (handle.p.radius<1){handle.p.radius*outerRadius}{handle.p.radius};
 
 		this.defineMouseActions;
 		this.direction_(direction);  // this initializes prStarAngle and prSweepLength
@@ -190,6 +192,8 @@ SpreadView : ValuesView {
 			innerRadius = maxRadius * innerRadiusRatio;
 			wedgeWidth = outerRadius - innerRadius;
 
+			clickRangePx = if (handle.p.radius<1){handle.p.radius*outerRadius}{handle.p.radius};
+
 			this.calcHandlePnts;
 
 			this.drawInThisOrder;
@@ -197,17 +201,20 @@ SpreadView : ValuesView {
 	}
 
 	calcHandlePnts {
-		var thetas, bndrho, cenrho;
+		var bndrho, cenrho;
 		// lo, center, hi
-		thetas = [inputs[3], inputs[1], inputs[4]].collect{ |rot|
+		handleThetas = [inputs[3], inputs[1], inputs[4]].collect{ |rot|
 			var theta, rho;
 			theta = prRangeStartAngle + (rot * prRangeSweepLength);
 		};
 		bndrho = outerRadius * handle.p.anchorBnd;
 		cenrho = outerRadius * handle.p.anchorCen;
 		handlePnts = [bndrho, cenrho, bndrho].collect{|rho, i|
-			Polar(rho, thetas[i]).asPoint + cen;
+			Polar(rho, handleThetas[i]).asPoint + cen;
 		};
+
+		// valPoint's reference is the outer edge
+		valTheta = prRangeStartAngle + (inputs[0] * prRangeSweepLength);
 	}
 
 	drawInThisOrder {
@@ -217,6 +224,8 @@ SpreadView : ValuesView {
 			if (handle.p.fill) {handle.fill};
 			if (handle.p.stroke) {handle.stroke};
 		};
+		if (label.p.show) {label.fill};
+		if (curvalue.p.show) {curvalue.stroke};
 	}
 
 	defineMouseActions {
@@ -369,7 +378,7 @@ SprdSpreadLayer : RotaryArcWedgeLayer {
 			width:				1,						// width of either annularWedge or arc; relative to wedgeWidth
 			radius:				1,						// outer edge of the wedge or arc; relative to maxRadius
 			fill:		 			true,					// if annularWedge
-			fillColor:		Color.red.alpha_(0.3),
+			fillColor:		Color.green.alpha_(0.3),
 			stroke:				true,
 			strokeColor:	Color.gray,
 			strokeType:		\around, 			// if style: \wedge; \inside, \outside, or \around
@@ -392,8 +401,8 @@ SprdHandleLayer : ValueViewLayer {
 	*properties {
 		^(
 			show:					true,					// show this layer or not
-			anchorBnd:		1.1,					// relative to outerRadius
-			anchorCen:		1.2,					// relative to outerRadius
+			anchorBnd:		0.65,					// relative to outerRadius
+			anchorCen:		1,						// relative to outerRadius
 			radius:				0.05,					// if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
 			fill:		 			true,
 			fillColor:		Color.blue.alpha_(0.3),
@@ -428,20 +437,6 @@ SprdHandleLayer : ValueViewLayer {
 		view.handlePnts.do{|pnt|
 			Pen.strokeOval([0,0,d,d].asRect.center_(pnt))
 		};
-
-		// Pen.translate(view.cen.x, view.cen.y);
-		// rho = view.outerRadius * p.anchor;
-		//
-		// // for [lo, center, hi], do
-		// [view.inputs[3], view.inputs[1], view.inputs[4]].do{ |rot|
-		// 	Pen.push;
-		// 	Pen.rotate(view.prRangeStartAngle + (rot * view.prRangeSweepLength));
-		// 	Pen.width_(strokeWidth);
-		// 	Pen.strokeColor_(p.strokeColor);
-		// 	Pen.strokeOval( [0,0, d,d].asRect.center_(rho@0));
-		// 	Pen.pop;
-		// };
-
 		Pen.pop;
 	}
 }
@@ -449,13 +444,118 @@ SprdHandleLayer : ValueViewLayer {
 SprdCurvalueLayer : ValueViewLayer {
 	*properties {
 		^(
+			show:					true,					// show this layer or not
+			strokeColor: 	Color.red,
+			anchor:				1,
+			length:				0.5, // relative to wedgeWidth
+			strokeWidth:	0.05,
 		)
+	}
+
+	stroke {
+		var strokeWidth, from, to;
+		Pen.push;
+		Pen.translate(view.cen.x, view.cen.y);
+		Pen.strokeColor_(p.strokeColor);
+
+		strokeWidth = if (p.strokeWidth<1){p.strokeWidth*view.outerRadius}{p.strokeWidth};
+		Pen.strokeColor_(p.strokeColor);
+		from = p.anchor * view.outerRadius;
+		to  = from - (p.length * view.wedgeWidth);
+		Pen.moveTo(Polar(from, view.valTheta).asPoint.postln);
+		Pen.lineTo(Polar(to, view.valTheta).asPoint.postln);
+		Pen.stroke;
+		Pen.pop;
 	}
 }
 
 SprdLabelLayer : ValueViewLayer {
 	*properties {
 		^(
+			show:					true,					// show this layer or not
+			showVal:			true,
+			showSpread:		true,
+			anchor:				1.1,					// relative to outerRadius
+			bndColor: 		Color.black,
+			valColor:			Color.red,
+			font:					Font("Helvetica", 12),
+			fontSize:			0.1,					// pointSize, or if <1 function of view size
+			bndSprdCutoff:20,						// spread value at which bound labels are turned off
+
 		)
+	}
+
+	fill {
+		var rect, font, fsize, col, cen, valPnt, valsStr, xDist;
+		var pnt, xoff, muteBnds=false, curValRect, drawMe;
+
+		font = p.font;
+		fsize = if(p.fontSize<1){view.maxRadius*p.fontSize}{p.fontSize};
+		font.hasPointSize.if({
+			font.pointSize_(fsize);
+		}, {
+			font.pixelSize_(fsize);
+		});
+		rect = "-000.0".bounds(font);
+		col = p.valColor;
+		cen = view.cen;
+		valsStr = p.vals.round(0.1).collect({|val|val.asString});
+		muteBnds = (p.vals[2] < p.bndSprdCutoff); // check spread to "mute" bound labels
+
+		Pen.push;
+		Pen.translate(cen.x, cen.y);
+		Pen.strokeColor_(col);
+
+		// cur value
+		p.showVal.if{
+			valPnt = Polar(p.anchor * view.outerRadius, view.valTheta);
+
+			xoff = valPnt.theta.abs / pi;
+			valPnt = valPnt.asPoint; // as a point
+			rect.left = valPnt.x - (xoff*rect.width);
+			if (valPnt.y > 0) {rect.top_(valPnt.y+3)} {rect.bottom_(valPnt.y+3)};
+
+			// if (valPnt.x > cen.x) {rect.left_(valPnt.x)} {rect.right_(valPnt.x)};
+			// if (valPnt.y > cen.y) {rect.top_(valPnt.y)} {rect.bottom_(valPnt.y)};
+			Pen.stringCenteredIn( valsStr[0], rect, font, col);
+			curValRect = rect.copy;
+		};
+
+		col = p.bndColor;
+		// lo, cen, hi
+		view.handleThetas.do{|theta, i|
+			drawMe = true;
+			pnt = Polar(p.anchor * view.outerRadius, theta).asPoint;
+			xoff = theta.abs / pi;
+			rect.left = pnt.x - (xoff*rect.width);
+			if (pnt.y > 0) {rect.top_(pnt.y+3)} {rect.bottom_(pnt.y+3)};
+
+			// check if overlapping with curVal
+			curValRect !? {
+				drawMe = curValRect.contains(rect.center).not;
+			};
+			if (drawMe) {
+				switch(i,
+					0, {
+						muteBnds.not.if{
+							Pen.stringCenteredIn(valsStr[3], rect, font, col) // lo
+						}
+					},
+					1, { Pen.stringCenteredIn(valsStr[1], rect, font, col) }, // cen
+					2, {
+						muteBnds.not.if{
+							Pen.stringCenteredIn(valsStr[4], rect, font, col) // hi
+						}
+					},
+				);
+			};
+		};
+
+		// spread
+		p.showSpread.if{
+			Pen.stringCenteredIn(valsStr[2], rect.center_(0@0), font, col);
+		};
+
+		Pen.pop;
 	}
 }
