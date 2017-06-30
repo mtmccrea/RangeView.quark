@@ -114,30 +114,60 @@ SpreadView : ValuesView {
 	curValue_ { |deg, broadcast=true|
 		this.valueAt_(0, deg, broadcast)
 	}
-	curValueAction_ { |deg|
-		this.valueAtAction_(0, deg)
+	curValueDoAction_ { |deg|
+		this.valueAtDoAction_(0, deg)
 	}
 
+	prOkToSet { |newcen, newspread|
+		var boundDists, okToSet = true;
+		var h_sprd, newLo, newHi;
+
+		h_sprd = newspread.half;
+		newLo = newcen-h_sprd;
+		newHi = newcen+h_sprd;
+		// distance from bound, vals should be positive if in bounds
+		boundDists = [newLo - specs[0].minval,	specs[0].maxval - newHi];
+
+		boundDists.do{ |dist|
+			if (dist.isNegative) {
+				okToSet = false;
+				"Hit bounds.".warn;
+			}
+		};
+		^okToSet
+	}
 	// the following setters are for setting each parameter
 	// anchored by it's opposite and updating the others
 	// i.e. center update: spread anchored, lo/hi auto-update
+
 	center_ { |deg, broadcast=true|
-		this.prUpdateLoHi(deg, this.spread, false);
-		this.valueAt_(1, deg, broadcast);
+		if ( this.prOkToSet(deg, this.spread) ) {
+			this.prUpdateLoHi(deg, this.spread, false);
+			this.valueAt_(1, deg, broadcast);
+		};
 	}
-	centerAction_ { |deg|
-		this.prUpdateLoHi(deg, this.spread, false);
-		this.valueAtAction_(1, deg);
+
+	centerDoAction_ { |deg|
+		if ( this.prOkToSet(deg, this.spread) ) {
+			this.prUpdateLoHi(deg, this.spread, false);
+			this.valueAtDoAction_(1, deg);
+		};
 	}
 
 	spread_ { |deg, broadcast=true|
-		this.prUpdateLoHi(this.center, deg, false);
-		this.valueAt_(2, deg, broadcast)
+		if ( this.prOkToSet(this.center, deg) ) {
+			this.prUpdateLoHi(this.center, deg, false);
+			this.valueAt_(2, deg, broadcast)
+		}
 	}
-	spreadAction_ { |deg|
-		this.prUpdateLoHi(this.center, deg, false);
-		this.valueAtAction_(2, deg)
+
+	spreadDoAction_ { |deg|
+		if ( this.prOkToSet(this.center, deg) ) {
+			this.prUpdateLoHi(this.center, deg, false);
+			this.valueAtDoAction_(2, deg);
+		}
 	}
+
 
 	// if setting lo or hi explicitly, the opposite bound remains
 	// and center/spread is updated
@@ -145,18 +175,18 @@ SpreadView : ValuesView {
 		this.prUpdateCenSprd(deg, this.hi, false);
 		this.valueAt_(3, deg, broadcast)
 	}
-	loAction_ { |deg|
+	loDoAction_ { |deg|
 		this.prUpdateCenSprd(deg, this.hi, false);
-		this.valueAtAction_(3, deg)
+		this.valueAtDoAction_(3, deg)
 	}
 
 	hi_ { |deg, broadcast=true|
 		this.prUpdateCenSprd(this.lo, deg, false);
 		this.valueAt_(4, deg, broadcast)
 	}
-	hiAction_ { |deg|
+	hiDoAction_ { |deg|
 		this.prUpdateCenSprd(this.lo, deg, false);
-		this.valueAtAction_(4, deg)
+		this.valueAtDoAction_(4, deg)
 	}
 
 	// update lo and hi by center/spread
@@ -265,15 +295,19 @@ SpreadView : ValuesView {
 
 				case
 				{adjustLo} { // changes spread
-					this.spreadAction_(this.center - posDeg * 2);
+					// prevent snapping around prRangeStartAngle
+					if (posDeg <= this.hi){
+						this.spreadDoAction_(this.center - posDeg * 2);
+					}
 				}
 				{adjustHi} { // changes spread
-					this.spreadAction_(posDeg - this.center * 2);
+					if (posDeg >= this.lo){
+						this.spreadDoAction_(posDeg - this.center * 2);
+					}
 				}
 				{adjustCen} {
-					this.centerAction_(posDeg);
+					this.centerDoAction_(posDeg);
 				};
-				// this.respondToCircularMove(x@y)
 			};
 		};
 
@@ -291,7 +325,7 @@ SpreadView : ValuesView {
 		// radRel = rad + 0.5pi * dirFlag; 	// relative 0 at 12 o'clock, clockwise
 		// radRel = (radRel - (startAngle*dirFlag)).wrap(0, 2pi); // relative to start position
 		// if (radRel.inRange(0, sweepLength)) {
-		// 	this.inputAction_(radRel/sweepLength); // triggers refresh
+		// 	this.inputDoAction_(radRel/sweepLength); // triggers refresh
 		// 	stValue = value;
 		// 	stInput = input;
 		// };
@@ -307,7 +341,7 @@ SpreadView : ValuesView {
 		// radRel = rad + 0.5pi * dirFlag;		// relative 0 at 12 o'clock, clockwise
 		// radRel = (radRel - (startAngle*dirFlag)).wrap(0, 2pi);	// relative to start position
 		// if (radRel.inRange(0, sweepLength)) {
-		// 	this.inputAction_(radRel/sweepLength); // triggers refresh
+		// 	this.inputDoAction_(radRel/sweepLength); // triggers refresh
 		// 	stValue = value;
 		// 	stInput = input;
 		// };
@@ -462,8 +496,8 @@ SprdCurvalueLayer : ValueViewLayer {
 		Pen.strokeColor_(p.strokeColor);
 		from = p.anchor * view.outerRadius;
 		to  = from - (p.length * view.wedgeWidth);
-		Pen.moveTo(Polar(from, view.valTheta).asPoint.postln);
-		Pen.lineTo(Polar(to, view.valTheta).asPoint.postln);
+		Pen.moveTo(Polar(from, view.valTheta));
+		Pen.lineTo(Polar(to, view.valTheta));
 		Pen.stroke;
 		Pen.pop;
 	}
