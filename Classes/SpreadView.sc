@@ -131,7 +131,7 @@ SpreadView : ValuesView {
 		boundDists.do{ |dist|
 			if (dist.isNegative) {
 				okToSet = false;
-				"Hit bounds.".warn;
+				// "Hit bounds.".warn;
 			}
 		};
 		^okToSet
@@ -237,8 +237,8 @@ SpreadView : ValuesView {
 			var theta, rho;
 			theta = prRangeStartAngle + (rot * prRangeSweepLength);
 		};
-		bndrho = outerRadius * handle.p.anchorBnd;
-		cenrho = outerRadius * handle.p.anchorCen;
+		bndrho = innerRadius + (wedgeWidth * handle.p.anchorBnd);
+		cenrho = innerRadius + (wedgeWidth * handle.p.anchorCen);
 		handlePnts = [bndrho, cenrho, bndrho].collect{|rho, i|
 			Polar(rho, handleThetas[i]).asPoint + cen;
 		};
@@ -315,36 +315,6 @@ SpreadView : ValuesView {
 			|v, x, y|
 			clicked = adjustLo = adjustCen = adjustHi = false;
 		}
-	}
-
-	// radial change, relative to center
-	respondToCircularMove {|mMovePnt|
-		// var pos, rad, radRel;
-		// pos = (mMovePnt - cen);
-		// rad = atan2(pos.y,pos.x);					// radian position, relative 0 at 3 o'clock
-		// radRel = rad + 0.5pi * dirFlag; 	// relative 0 at 12 o'clock, clockwise
-		// radRel = (radRel - (startAngle*dirFlag)).wrap(0, 2pi); // relative to start position
-		// if (radRel.inRange(0, sweepLength)) {
-		// 	this.inputDoAction_(radRel/sweepLength); // triggers refresh
-		// 	stValue = value;
-		// 	stInput = input;
-		// };
-	}
-
-	respondToAbsoluteClick {
-
-		/* identify if near handles */
-
-		// var pos, rad, radRel;
-		// pos = (mouseDownPnt - cen);
-		// rad = atan2(pos.y,pos.x);					// radian position, relative 0 at 3 o'clock
-		// radRel = rad + 0.5pi * dirFlag;		// relative 0 at 12 o'clock, clockwise
-		// radRel = (radRel - (startAngle*dirFlag)).wrap(0, 2pi);	// relative to start position
-		// if (radRel.inRange(0, sweepLength)) {
-		// 	this.inputDoAction_(radRel/sweepLength); // triggers refresh
-		// 	stValue = value;
-		// 	stInput = input;
-		// };
 	}
 
 	direction_ {|dir=\cw|
@@ -435,7 +405,7 @@ SprdHandleLayer : ValueViewLayer {
 	*properties {
 		^(
 			show:					true,					// show this layer or not
-			anchorBnd:		0.65,					// relative to outerRadius
+			anchorBnd:		0.5,					// relative to outerRadius
 			anchorCen:		1,						// relative to outerRadius
 			radius:				0.05,					// if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
 			fill:		 			true,
@@ -488,6 +458,7 @@ SprdCurvalueLayer : ValueViewLayer {
 
 	stroke {
 		var strokeWidth, from, to;
+		"drawing".postln;
 		Pen.push;
 		Pen.translate(view.cen.x, view.cen.y);
 		Pen.strokeColor_(p.strokeColor);
@@ -496,8 +467,9 @@ SprdCurvalueLayer : ValueViewLayer {
 		Pen.strokeColor_(p.strokeColor);
 		from = p.anchor * view.outerRadius;
 		to  = from - (p.length * view.wedgeWidth);
-		Pen.moveTo(Polar(from, view.valTheta));
-		Pen.lineTo(Polar(to, view.valTheta));
+		[from,to].postln;
+		Pen.moveTo(Polar(from, view.valTheta).asPoint);
+		Pen.lineTo(Polar(to, view.valTheta).asPoint);
 		Pen.stroke;
 		Pen.pop;
 	}
@@ -556,13 +528,15 @@ SprdLabelLayer : ValueViewLayer {
 		};
 
 		col = p.bndColor;
+		view.handleThetas.postln;
 		// lo, cen, hi
 		view.handleThetas.do{|theta, i|
 			drawMe = true;
 			pnt = Polar(p.anchor * view.outerRadius, theta).asPoint;
-			xoff = theta.abs / pi;
+			// xoff = theta.abs / pi;
+			xoff = theta.fold(0,pi)/pi;
 			rect.left = pnt.x - (xoff*rect.width);
-			if (pnt.y > 0) {rect.top_(pnt.y+3)} {rect.bottom_(pnt.y+3)};
+			if (pnt.y > 0) {rect.top_(pnt.y+3)} {rect.bottom_(pnt.y-3)};
 
 			// check if overlapping with curVal
 			curValRect !? {
