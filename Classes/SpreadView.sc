@@ -288,9 +288,11 @@ SpreadView : ValuesView {
 			if (clicked) {
 				pos = ((x@y) - cen);
 				theta = atan2(pos.y,pos.x); // radian position, relative 0 at 3 o'clock
+				theta = theta * dirFlag;
 				// where in the range the mouse is
 				posDeg = specs[0].map(
-					(theta - prRangeStartAngle).wrap(0, 2pi) / prRangeSweepLength
+					// (theta - prRangeStartAngle).wrap(0, 2pi) / prRangeSweepLength
+					(theta - (prRangeStartAngle * dirFlag)).wrap(0, 2pi) / prRangeSweepLength.abs
 				);
 
 				case
@@ -322,12 +324,14 @@ SpreadView : ValuesView {
 		dirFlag = switch (direction, \cw, {1}, \ccw, {-1});
 		this.rangeStartAngle_(rangeStartAngle);
 		this.rangeSweepLength_(rangeSweepLength);		// updates prSweepLength
+		cen !? {this.calcHandlePnts};
 		this.refresh;
 	}
 
 	rangeStartAngle_ {|deg=0|
 		rangeStartAngle = deg;
-		prRangeStartAngle = -0.5pi + (rangeCenterOffset + rangeStartAngle).degrad;		// start angle always relative to 0 is up, cw
+		// prRangeStartAngle = -0.5pi + (rangeCenterOffset + rangeStartAngle).degrad; // start angle always relative to 0 is up, cw
+		prRangeStartAngle = -0.5pi + ((rangeCenterOffset + rangeStartAngle)*dirFlag).degrad; // start angle always relative to 0 is up, follows dirflag
 	}
 
 	rangeSweepLength_ {|deg=360|
@@ -458,7 +462,7 @@ SprdCurvalueLayer : ValueViewLayer {
 
 	stroke {
 		var strokeWidth, from, to;
-		"drawing".postln;
+
 		Pen.push;
 		Pen.translate(view.cen.x, view.cen.y);
 		Pen.strokeColor_(p.strokeColor);
@@ -467,7 +471,6 @@ SprdCurvalueLayer : ValueViewLayer {
 		Pen.strokeColor_(p.strokeColor);
 		from = p.anchor * view.outerRadius;
 		to  = from - (p.length * view.wedgeWidth);
-		[from,to].postln;
 		Pen.moveTo(Polar(from, view.valTheta).asPoint);
 		Pen.lineTo(Polar(to, view.valTheta).asPoint);
 		Pen.stroke;
@@ -528,7 +531,6 @@ SprdLabelLayer : ValueViewLayer {
 		};
 
 		col = p.bndColor;
-		view.handleThetas.postln;
 		// lo, cen, hi
 		view.handleThetas.do{|theta, i|
 			drawMe = true;
