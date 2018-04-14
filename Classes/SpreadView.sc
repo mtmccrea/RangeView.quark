@@ -356,19 +356,19 @@ SprdRangeLayer : RotaryArcWedgeLayer {
 	// define default properties in an Event as a class method
 	*properties {
 		^(
-			show:					true,					// show this layer or not
-			style:				\wedge,				// \wedge or \arc: annularWedge or arc
+			show:        true,        // show this layer or not
+			style:       \wedge,      // \wedge or \arc: annularWedge or arc
 			// note if \arc, the width follows .width, not strokeWidth
-			width:				1,						// width of either annularWedge or arc; relative to wedgeWidth
-			radius:				1,						// outer edge of the wedge or arc; relative to maxRadius
-			fill:		 			true,					// if annularWedge
-			fillColor:		Color.gray.alpha_(0.3),
-			stroke:				true,
-			strokeColor:	Color.gray,
-			strokeType:		\around, 			// if style: \wedge; \inside, \outside, or \around
-			strokeWidth:	1, 						// if style: \wedge, if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
-			capStyle:			\round,				// if style: \arc
-			joinStyle:	 	0,						// if style: \wedge; 0=flat
+			width:       1,           // width of either annularWedge or arc; relative to wedgeWidth
+			radius:      1,           // outer edge of the wedge or arc; relative to maxRadius
+			fill:        true,        // if annularWedge
+			fillColor:   Color.gray.alpha_(0.3),
+			stroke:      true,
+			strokeColor: Color.gray,
+			strokeType:  \around,     // if style: \wedge; \inside, \outside, or \around
+			strokeWidth: 1,           // if style: \wedge, if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
+			capStyle:    \round,      // if style: \arc
+			joinStyle:   0,           // if style: \wedge; 0=flat
 		)
 	}
 
@@ -380,19 +380,19 @@ SprdRangeLayer : RotaryArcWedgeLayer {
 SprdSpreadLayer : RotaryArcWedgeLayer {
 	*properties {
 		^(
-			show:					true,					// show this layer or not
-			style:				\wedge,				// \wedge or \arc: annularWedge or arc
+			show:        true,        // show this layer or not
+			style:       \wedge,      // \wedge or \arc: annularWedge or arc
 			// note if \arc, the width follows .width, not strokeWidth
-			width:				1,						// width of either annularWedge or arc; relative to wedgeWidth
-			radius:				1,						// outer edge of the wedge or arc; relative to maxRadius
-			fill:		 			true,					// if annularWedge
-			fillColor:		Color.green.alpha_(0.3),
-			stroke:				true,
-			strokeColor:	Color.gray,
-			strokeType:		\around, 			// if style: \wedge; \inside, \outside, or \around
-			strokeWidth:	1, 						// if style: \wedge, if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
-			capStyle:			\round,				// if style: \arc
-			joinStyle:	 	0,						// if style: \wedge; 0=flat
+			width:       1,           // width of either annularWedge or arc; relative to wedgeWidth
+			radius:      1,           // outer edge of the wedge or arc; relative to maxRadius
+			fill:        true,        // if annularWedge
+			fillColor:   Color.green.alpha_(0.3),
+			stroke:      true,
+			strokeColor: Color.gray,
+			strokeType:  \around,     // if style: \wedge; \inside, \outside, or \around
+			strokeWidth: 1,           // if style: \wedge, if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
+			capStyle:    \round,      // if style: \arc
+			joinStyle:   0,           // if style: \wedge; 0=flat
 		)
 	}
 
@@ -408,15 +408,15 @@ SprdSpreadLayer : RotaryArcWedgeLayer {
 SprdHandleLayer : ValueViewLayer {
 	*properties {
 		^(
-			show:					true,					// show this layer or not
-			anchorBnd:		0.5,					// relative to outerRadius
-			anchorCen:		1,						// relative to outerRadius
-			radius:				0.05,					// if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
-			fill:		 			true,
-			fillColor:		Color.blue.alpha_(0.3),
-			stroke:				true,
-			strokeColor:	Color.black,
-			strokeWidth:	0.15, 						// ratio of radius
+			show:        true,     // show this layer or not
+			anchorBnd:   0.5,      // relative to outerRadius
+			anchorCen:   1,        // relative to outerRadius
+			radius:      0.05,     // if < 1, assumed to be a normalized value and changes with view size, else treated as a pixel value
+			fill:        true,
+			fillColor:   Color.blue.alpha_(0.3),
+			stroke:      true,
+			strokeColor: Color.black,
+			strokeWidth: 0.15,     // ratio of radius
 		)
 	}
 
@@ -452,11 +452,11 @@ SprdHandleLayer : ValueViewLayer {
 SprdCurvalueLayer : ValueViewLayer {
 	*properties {
 		^(
-			show:					true,					// show this layer or not
-			strokeColor: 	Color.red,
-			anchor:				1,
-			length:				0.5, // relative to wedgeWidth
-			strokeWidth:	0.05,
+			show:        true,     // show this layer or not
+			strokeColor: Color.red,
+			anchor:      1,
+			length:      0.5,      // relative to wedgeWidth
+			strokeWidth: 0.05,     // ratio of radius
 		)
 	}
 
@@ -481,15 +481,15 @@ SprdCurvalueLayer : ValueViewLayer {
 SprdLabelLayer : ValueViewLayer {
 	*properties {
 		^(
-			show:					true,					// show this layer or not
-			showVal:			true,
-			showSpread:		true,
-			anchor:				1.1,					// relative to outerRadius
-			bndColor: 		Color.black,
-			valColor:			Color.red,
-			font:					Font("Helvetica", 12),
-			fontSize:			0.1,					// pointSize, or if <1 function of view size
-			bndSprdCutoff:20,						// spread value at which bound labels are turned off
+			show:       true,        // show this layer or not
+			showVal:    true,
+			showSpread: true,
+			anchor:     1.1,         // relative to outerRadius
+			bndColor:   Color.black,
+			valColor:   Color.red,
+			font:       Font("Helvetica", 12),
+			fontSize:   0.1,         // pointSize, or if <1 function of view size
+			bndSprdCutoff: 20,       // spread value at which bound labels are turned off
 
 		)
 	}
