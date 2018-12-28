@@ -118,8 +118,8 @@ SpreadView : ValuesView {
 	curValue_ { |deg, broadcast=true|
 		this.valueAt_(0, deg, broadcast)
 	}
-	curValueDoAction_ { |deg|
-		this.valueAtDoAction_(0, deg)
+	curValueAction_ { |deg|
+		this.valueAtAction_(0, deg)
 	}
 
 	prOkToSet { |newcen, newspread|
@@ -151,10 +151,10 @@ SpreadView : ValuesView {
 		};
 	}
 
-	centerDoAction_ { |deg|
+	centerAction_ { |deg|
 		if ( this.prOkToSet(deg, this.spread) ) {
 			this.prUpdateLoHi(deg, this.spread, false);
-			this.valueAtDoAction_(1, deg);
+			this.valueAtAction_(1, deg);
 		};
 	}
 
@@ -165,10 +165,10 @@ SpreadView : ValuesView {
 		}
 	}
 
-	spreadDoAction_ { |deg|
+	spreadAction_ { |deg|
 		if ( this.prOkToSet(this.center, deg) ) {
 			this.prUpdateLoHi(this.center, deg, false);
-			this.valueAtDoAction_(2, deg);
+			this.valueAtAction_(2, deg);
 		}
 	}
 
@@ -179,18 +179,18 @@ SpreadView : ValuesView {
 		this.prUpdateCenSprd(deg, this.hi, false);
 		this.valueAt_(3, deg, broadcast)
 	}
-	loDoAction_ { |deg|
+	loAction_ { |deg|
 		this.prUpdateCenSprd(deg, this.hi, false);
-		this.valueAtDoAction_(3, deg)
+		this.valueAtAction_(3, deg)
 	}
 
 	hi_ { |deg, broadcast=true|
 		this.prUpdateCenSprd(this.lo, deg, false);
 		this.valueAt_(4, deg, broadcast)
 	}
-	hiDoAction_ { |deg|
+	hiAction_ { |deg|
 		this.prUpdateCenSprd(this.lo, deg, false);
-		this.valueAtDoAction_(4, deg)
+		this.valueAtAction_(4, deg)
 	}
 
 	// update lo and hi by center/spread
@@ -305,16 +305,16 @@ SpreadView : ValuesView {
 				{ adjustLo } { // changes spread
 					// prevent snapping around prRangeStartAngle
 					if (posDeg <= this.hi) {
-						this.spreadDoAction_(this.center - posDeg * 2);
+						this.spreadAction_(this.center - posDeg * 2);
 					}
 				}
 				{ adjustHi } { // changes spread
 					if (posDeg >= this.lo) {
-						this.spreadDoAction_(posDeg - this.center * 2);
+						this.spreadAction_(posDeg - this.center * 2);
 					}
 				}
 				{ adjustCen } {
-					this.centerDoAction_(posDeg);
+					this.centerAction_(posDeg);
 				};
 			};
 		};
