@@ -532,13 +532,16 @@ SprdLabelLayer : ValueViewLayer {
 
 		col = p.bndColor;
 		// lo, cen, hi
-		view.handleThetas.do{|theta, i|
+		handleIdx = [];
+		if (p.showCenter) { handleIdx = handleIdx ++ 1 };
+		if (p.showBounds) { handleIdx = handleIdx ++ [0, 2] };
+
+		view.handleThetas.at(handleIdx).do{ |theta, i|
 			drawMe = true;
 			pnt = Polar(p.anchor * view.outerRadius, theta).asPoint;
-			// xoff = theta.abs / pi;
-			xoff = theta.fold(0,pi)/pi;
-			rect.left = pnt.x - (xoff*rect.width);
-			if (pnt.y > 0) {rect.top_(pnt.y+3)} {rect.bottom_(pnt.y-3)};
+			xoff = theta.fold(0, pi) / pi;
+			rect.left = pnt.x - (xoff * rect.width);
+			if (pnt.y > 0) { rect.top_(pnt.y+3) } { rect.bottom_(pnt.y-3) };
 
 			// check if overlapping with curVal
 			curValRect !? {
