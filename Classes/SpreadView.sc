@@ -23,8 +23,8 @@ SpreadView : ValuesView {
 	}
 
 
-	init {
-		|argRangeCenterOffset, argInnerRadiusRatio, argOuterRadiusRatio, maxSpread, initVals|
+	init { |argRangeCenterOffset, argInnerRadiusRatio, argOuterRadiusRatio, maxSpread, initVals|
+
 		// REQUIRED: in subclass init, initialize drawing layers
 		// initialize layer classes and save them to vars
 		#range, sprd, handle, curvalue, label = [
@@ -33,18 +33,18 @@ SpreadView : ValuesView {
 			|class|
 			class.new(this, class.properties)
 		});
+
 		// convenience variable to access a list of the layers
 		layers = [range, sprd, handle, curvalue, label];
 
 		rangeCenterOffset = argRangeCenterOffset;
-
 		direction = \cw;
 		dirFlag = 1;
 		boarderPx = 1;
 
 		this.initSpecsAndVals(maxSpread, initVals);
 
-		this.rangeStartAngle = maxSpread.half.neg;		// reference 0 is UP
+		this.rangeStartAngle = maxSpread.half.neg; // reference 0 is UP
 		this.rangeSweepLength = maxSpread;
 
 		this.innerRadiusRatio_(argInnerRadiusRatio); // set innerRadiusRatio with setter to check sweepLength condition
@@ -56,7 +56,11 @@ SpreadView : ValuesView {
 		innerRadius = maxRadius*innerRadiusRatio;
 		wedgeWidth = outerRadius-innerRadius;
 
-		clickRangePx = if (handle.p.radius<1){handle.p.radius*outerRadius}{handle.p.radius};
+		clickRangePx = if (handle.p.radius < 1) {
+			handle.p.radius*outerRadius
+		} {
+			handle.p.radius
+		};
 
 		this.defineMouseActions;
 		this.direction_(direction);  // this initializes prStarAngle and prSweepLength
@@ -76,10 +80,10 @@ SpreadView : ValuesView {
 		sprdSpec = [0, maxSpread].asSpec;
 		loSpec = [lo, hi].asSpec;
 		hiSpec = [lo, hi].asSpec;
+
 		// reset specs instance variable to be the array of specs
 		spcs = [valSpec, cenSpec, sprdSpec, loSpec, hiSpec];
-
-		spcs.do{|spec, i| this.specAt_(i, spec, false)};
+		spcs.do{ |spec, i| this.specAt_(i, spec, false) };
 
 		// re-initialize values
 		// NOTE: center/spread vals take precedence over lo/hi
@@ -201,8 +205,8 @@ SpreadView : ValuesView {
 		var sprd;
 		sprd = hi - lo;
 		// don't use convenience methods or else inf loop
-		this.valueAt_(1, sprd / 2, broadcast);  // cen
-		this.valueAt_(2, sprd, broadcast);			// sprd
+		this.valueAt_(1, sprd / 2, broadcast); // cen
+		this.valueAt_(2, sprd, broadcast);     // sprd
 	}
 
 	// state getters
@@ -216,16 +220,19 @@ SpreadView : ValuesView {
 		^{|v|
 			// "global" instance vars, accessed by ValueViewLayers
 			bnds = v.bounds;
-			cen  = bnds.center;
+			cen = bnds.center;
 			maxRadius = min(cen.x, cen.y) - boarderPx;
 			outerRadius = maxRadius * outerRadiusRatio;
 			innerRadius = maxRadius * innerRadiusRatio;
 			wedgeWidth = outerRadius - innerRadius;
 
-			clickRangePx = if (handle.p.radius<1){handle.p.radius*outerRadius}{handle.p.radius};
+			clickRangePx = if (handle.p.radius<1) {
+				handle.p.radius * outerRadius
+			} {
+				handle.p.radius
+			};
 
 			this.calcHandlePnts;
-
 			this.drawInThisOrder;
 		};
 	}
@@ -248,14 +255,14 @@ SpreadView : ValuesView {
 	}
 
 	drawInThisOrder {
-		if (range.p.show) {range.fill};
-		if (sprd.p.show) {sprd.fill};
+		if (range.p.show) { range.fill };
+		if (sprd.p.show) { sprd.fill };
 		if (handle.p.show) {
-			if (handle.p.fill) {handle.fill};
-			if (handle.p.stroke) {handle.stroke};
+			if (handle.p.fill) { handle.fill };
+			if (handle.p.stroke) { handle.stroke };
 		};
-		if (label.p.show) {label.fill};
-		if (curvalue.p.show) {curvalue.stroke};
+		if (label.p.show) { label.fill };
+		if (curvalue.p.show) { curvalue.stroke };
 	}
 
 	defineMouseActions {
@@ -272,9 +279,9 @@ SpreadView : ValuesView {
 					if (hpnt.dist(mDownPnt) < clickRangePx) {
 						clicked = true;
 						switch(i,
-							0, {adjustLo = true},
-							1, {adjustCen = true},
-							2, {adjustHi = true},
+							0, { adjustLo = true },
+							1, { adjustCen = true },
+							2, { adjustHi = true },
 						);
 						break.()
 					};
@@ -291,23 +298,22 @@ SpreadView : ValuesView {
 				theta = theta * dirFlag;
 				// where in the range the mouse is
 				posDeg = specs[0].map(
-					// (theta - prRangeStartAngle).wrap(0, 2pi) / prRangeSweepLength
 					(theta - (prRangeStartAngle * dirFlag)).wrap(0, 2pi) / prRangeSweepLength.abs
 				);
 
 				case
-				{adjustLo} { // changes spread
+				{ adjustLo } { // changes spread
 					// prevent snapping around prRangeStartAngle
-					if (posDeg <= this.hi){
+					if (posDeg <= this.hi) {
 						this.spreadDoAction_(this.center - posDeg * 2);
 					}
 				}
-				{adjustHi} { // changes spread
-					if (posDeg >= this.lo){
+				{ adjustHi } { // changes spread
+					if (posDeg >= this.lo) {
 						this.spreadDoAction_(posDeg - this.center * 2);
 					}
 				}
-				{adjustCen} {
+				{ adjustCen } {
 					this.centerDoAction_(posDeg);
 				};
 			};
@@ -319,33 +325,33 @@ SpreadView : ValuesView {
 		}
 	}
 
-	direction_ {|dir=\cw|
+	direction_ { |dir = \cw|
 		direction = dir;
-		dirFlag = switch (direction, \cw, {1}, \ccw, {-1});
+		dirFlag = switch (direction, \cw, { 1 }, \ccw, { -1 });
 		this.rangeStartAngle_(rangeStartAngle);
-		this.rangeSweepLength_(rangeSweepLength);		// updates prSweepLength
-		cen !? {this.calcHandlePnts};
+		this.rangeSweepLength_(rangeSweepLength); // updates prSweepLength
+		cen !? { this.calcHandlePnts };
 		this.refresh;
 	}
 
-	rangeStartAngle_ {|deg=0|
+	rangeStartAngle_ { |deg = 0|
 		rangeStartAngle = deg;
 		// prRangeStartAngle = -0.5pi + (rangeCenterOffset + rangeStartAngle).degrad; // start angle always relative to 0 is up, cw
-		prRangeStartAngle = -0.5pi + ((rangeCenterOffset + rangeStartAngle)*dirFlag).degrad; // start angle always relative to 0 is up, follows dirflag
+		prRangeStartAngle = -0.5pi + ((rangeCenterOffset + rangeStartAngle) * dirFlag).degrad; // start angle always relative to 0 is up, follows dirflag
 	}
 
-	rangeSweepLength_ {|deg=360|
+	rangeSweepLength_ { |deg = 360|
 		rangeSweepLength = deg;
 		prRangeSweepLength = rangeSweepLength.degrad * dirFlag;
 		this.innerRadiusRatio_(innerRadiusRatio); // update innerRadiusRatio in case this was set to 0
 	}
 
-	innerRadiusRatio_ {|ratio|
-		innerRadiusRatio = if (ratio == 0) {1e-5} {ratio};
+	innerRadiusRatio_ { |ratio|
+		innerRadiusRatio = if (ratio == 0) { 1e-5 } { ratio };
 		this.refresh
 	}
 
-	outerRadiusRatio_ {|ratio|
+	outerRadiusRatio_ { |ratio|
 		outerRadiusRatio = ratio;
 		this.refresh
 	}
@@ -437,8 +443,8 @@ SprdHandleLayer : ValueViewLayer {
 		var strokeWidth, d, rho;
 
 		Pen.push;
-		d = if (p.radius<1){p.radius*view.outerRadius}{p.radius} * 2;
-		strokeWidth = if (p.strokeWidth<1){p.strokeWidth*d}{p.strokeWidth};
+		d = if (p.radius<1) { p.radius * view.outerRadius } { p.radius } * 2;
+		strokeWidth = if (p.strokeWidth<1) { p.strokeWidth * d } { p.strokeWidth };
 		Pen.width_(strokeWidth);
 		Pen.strokeColor_(p.strokeColor);
 
@@ -467,7 +473,7 @@ SprdCurvalueLayer : ValueViewLayer {
 		Pen.translate(view.cen.x, view.cen.y);
 		Pen.strokeColor_(p.strokeColor);
 
-		strokeWidth = if (p.strokeWidth<1){p.strokeWidth*view.outerRadius}{p.strokeWidth};
+		strokeWidth = if (p.strokeWidth < 1) { p.strokeWidth * view.outerRadius } { p.strokeWidth };
 		Pen.strokeColor_(p.strokeColor);
 		from = p.anchor * view.outerRadius;
 		to  = from - (p.length * view.wedgeWidth);
@@ -484,6 +490,8 @@ SprdLabelLayer : ValueViewLayer {
 			show:       true,        // show this layer or not
 			showVal:    true,
 			showSpread: true,
+			showBounds: true,
+			showCenter: true,
 			anchor:     1.1,         // relative to outerRadius
 			bndColor:   Color.black,
 			valColor:   Color.red,
@@ -496,11 +504,12 @@ SprdLabelLayer : ValueViewLayer {
 
 	fill {
 		var rect, font, fsize, col, cen, valPnt, valsStr, xDist;
-		var pnt, xoff, muteBnds=false, curValRect, drawMe;
+		var pnt, xoff, curValRect, drawMe, handleIdx;
+		var muteBnds = false;
 
 		font = p.font;
-		fsize = if(p.fontSize<1){view.maxRadius*p.fontSize}{p.fontSize};
-		font.hasPointSize.if({
+		fsize = if (p.fontSize < 1) { view.maxRadius * p.fontSize } { p.fontSize };
+		font.hasPointSize.if ({
 			font.pointSize_(fsize);
 		}, {
 			font.pixelSize_(fsize);
@@ -508,7 +517,7 @@ SprdLabelLayer : ValueViewLayer {
 		rect = "-000.0".bounds(font);
 		col = p.valColor;
 		cen = view.cen;
-		valsStr = p.vals.round(0.1).collect({|val|val.asString});
+		valsStr = p.vals.round(0.1).collect({ |val| val.asString });
 		muteBnds = (p.vals[2] < p.bndSprdCutoff); // check spread to "mute" bound labels
 
 		Pen.push;
@@ -516,21 +525,20 @@ SprdLabelLayer : ValueViewLayer {
 		Pen.strokeColor_(col);
 
 		// cur value
-		p.showVal.if{
+		p.showVal.if {
 			valPnt = Polar(p.anchor * view.outerRadius, view.valTheta);
 
 			xoff = valPnt.theta.abs / pi;
 			valPnt = valPnt.asPoint; // as a point
-			rect.left = valPnt.x - (xoff*rect.width);
-			if (valPnt.y > 0) {rect.top_(valPnt.y+3)} {rect.bottom_(valPnt.y+3)};
+			rect.left = valPnt.x - (xoff * rect.width);
+			if (valPnt.y > 0) { rect.top_(valPnt.y + 3) } { rect.bottom_(valPnt.y + 3) };
 
-			// if (valPnt.x > cen.x) {rect.left_(valPnt.x)} {rect.right_(valPnt.x)};
-			// if (valPnt.y > cen.y) {rect.top_(valPnt.y)} {rect.bottom_(valPnt.y)};
 			Pen.stringCenteredIn( valsStr[0], rect, font, col);
 			curValRect = rect.copy;
 		};
 
 		col = p.bndColor;
+
 		// lo, cen, hi
 		handleIdx = [];
 		if (p.showCenter) { handleIdx = handleIdx ++ 1 };
@@ -565,7 +573,7 @@ SprdLabelLayer : ValueViewLayer {
 		};
 
 		// spread
-		p.showSpread.if{
+		p.showSpread.if {
 			Pen.stringCenteredIn(valsStr[2], rect.center_(0@0), font, col);
 		};
 
