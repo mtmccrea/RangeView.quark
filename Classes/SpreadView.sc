@@ -29,10 +29,7 @@ SpreadView : ValuesView {
 		// initialize layer classes and save them to vars
 		#range, sprd, handle, curvalue, label = [
 			SprdRangeLayer, SprdSpreadLayer, SprdHandleLayer, SprdCurvalueLayer, SprdLabelLayer
-		].collect({
-			|class|
-			class.new(this, class.properties)
-		});
+		].collect({ |class| class.new(this) });
 
 		// convenience variable to access a list of the layers
 		layers = [range, sprd, handle, curvalue, label];
