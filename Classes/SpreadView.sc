@@ -501,7 +501,7 @@ SprdLabelLayer : ValueViewLayer {
 
 	fill {
 		var rect, font, fsize, col, cen, valPnt, valsStr, xDist;
-		var pnt, xoff, curValRect, drawMe, handleIdx;
+		var pnt, xoff, curValRect, drawMe, handleIdxs, theta;
 		var muteBnds = false;
 
 		font = p.font;
@@ -514,6 +514,7 @@ SprdLabelLayer : ValueViewLayer {
 		rect = "-000.0".bounds(font);
 		col = p.valColor;
 		cen = view.cen;
+		// valsStr = [value, center, spread, lo, hi]
 		valsStr = p.vals.round(0.1).collect({ |val| val.asString });
 		muteBnds = (p.vals[2] < p.bndSprdCutoff); // check spread to "mute" bound labels
 
@@ -537,11 +538,12 @@ SprdLabelLayer : ValueViewLayer {
 		col = p.bndColor;
 
 		// lo, cen, hi
-		handleIdx = [];
-		if (p.showCenter) { handleIdx = handleIdx ++ 1 };
-		if (p.showBounds) { handleIdx = handleIdx ++ [0, 2] };
+		handleIdxs = [];
+		if (p.showCenter) { handleIdxs = handleIdxs ++ 1 };
+		if (p.showBounds) { handleIdxs = handleIdxs ++ [0, 2] };
 
-		view.handleThetas.at(handleIdx).do{ |theta, i|
+		handleIdxs.do{ |handleIdx, i|
+			theta = view.handleThetas.at(handleIdx);
 			drawMe = true;
 			pnt = Polar(p.anchor * view.outerRadius, theta).asPoint;
 			xoff = theta.fold(0, pi) / pi;
@@ -553,7 +555,7 @@ SprdLabelLayer : ValueViewLayer {
 				drawMe = curValRect.contains(rect.center).not;
 			};
 			if (drawMe) {
-				switch(i,
+				switch (handleIdx, // valsStr = [value, center, spread, lo, hi]
 					0, {
 						muteBnds.not.if{
 							Pen.stringCenteredIn(valsStr[3], rect, font, col) // lo
