@@ -1,0 +1,14 @@
+(
+          name: "RangeView",
+       summary: "Configurable UI widgets for controlling bounded ranges.",
+        author: "Michael McCrea",
+     copyright: "Michael McCrea 2018",
+       license: "GPL",
+       version: "0.1.0",
+        schelp: "RangeView",
+           url: "https://github.com/ambisonictoolkit/RangeView.quark",
+  dependencies: [
+                    "https://github.com/mtmccrea/ValueView.quark"
+                ],
+         since: "2018"
+)
