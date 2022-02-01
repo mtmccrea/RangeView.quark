@@ -1,0 +1,384 @@
+TITLE:: SpreadView
+summary:: A range slider whose range is framed in terms of "spread" around a center value.
+categories:: GUI
+related:: Classes/RotaryView
+
+image::../img/SpreadView.png#SpreadView displaying a 45 degree spread centered at 12 o'clock::
+
+DESCRIPTION::
+A range slider whose range is framed in terms of "spread" (symmetric offsets around a center value). This spread
+The UI has drag handles from either endpoints (adjusting the spread, keeping the center value constant) and the center value (moving the range endpoints while keeping spread constant).
+All relevant values which are (optionally) displayed as text, including with the "spread" value.
+The the endpoints of the spread are constrained by overall settable range bounds of the UI.
+
+Currently, documentation is sparse but a basic link::#examples#example:: is given below.
+
+
+CLASSMETHODS::
+
+METHOD:: new
+(describe method here)
+
+ARGUMENT:: parent
+(describe argument here)
+
+ARGUMENT:: bounds
+(describe argument here)
+
+ARGUMENT:: maxSpread
+(describe argument here)
+
+ARGUMENT:: initVals
+(describe argument here)
+
+ARGUMENT:: rangeCenterOffset
+(describe argument here)
+
+ARGUMENT:: innerRadiusRatio
+(describe argument here)
+
+ARGUMENT:: outerRadiusRatio
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+INSTANCEMETHODS::
+
+METHOD:: outerRadius
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: direction
+(describe method here)
+
+ARGUMENT:: dir
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prOkToSet
+(describe method here)
+
+ARGUMENT:: newcen
+(describe argument here)
+
+ARGUMENT:: newspread
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: initSpecsAndVals
+(describe method here)
+
+ARGUMENT:: maxSpread
+(describe argument here)
+
+ARGUMENT:: initVals
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: loAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: wedgeWidth
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: rangeStartAngle
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: label
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: lo
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: curvalue
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: outerRadiusRatio
+(describe method here)
+
+ARGUMENT:: ratio
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: drawFunc
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prUpdateCenSprd
+(describe method here)
+
+ARGUMENT:: lo
+(describe argument here)
+
+ARGUMENT:: hi
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: init
+(describe method here)
+
+ARGUMENT:: argRangeCenterOffset
+(describe argument here)
+
+ARGUMENT:: argInnerRadiusRatio
+(describe argument here)
+
+ARGUMENT:: argOuterRadiusRatio
+(describe argument here)
+
+ARGUMENT:: maxSpread
+(describe argument here)
+
+ARGUMENT:: initVals
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: calcHandlePnts
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: innerRadius
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: sprd
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: handleThetas
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: range
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: spreadAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: rangeCenterOffset
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: centerAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: defineMouseActions
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: rangeSweepLength
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: curValue
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: handlePnts
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: maxRadius
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: bnds
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: cen
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: center
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: hiAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: hi
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: drawInThisOrder
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prRangeStartAngle
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: valTheta
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prRangeSweepLength
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: curValueAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: dirFlag
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prUpdateLoHi
+(describe method here)
+
+ARGUMENT:: center
+(describe argument here)
+
+ARGUMENT:: spread
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: handle
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: innerRadiusRatio
+(describe method here)
+
+ARGUMENT:: ratio
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: spread
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+EXAMPLES::
+
+code::
+(
+v = SpreadView(bounds: Size(300, 300).asRect,
+	maxSpread: 300,
+	// specs, initVals: order of values in arrays - [value, center, spread, lo, hi],
+	// lo and hi can be nil to autofill from center/spread
+	// initVals: [0, 0, 150, nil, nil],
+	initVals: [0, -90, 45, nil, nil],
+	rangeCenterOffset: 0, // always relative to 0 up, follows direction variable
+	innerRadiusRatio: 0.2,
+	outerRadiusRatio: 0.6
+).front;
+)
+v.direction_(\ccw);
+v.direction_(\cw);
+v.center_(0);  // set the center of the spread range
+v.center_(90);
+v.rangeStartAngle_(0);
+::

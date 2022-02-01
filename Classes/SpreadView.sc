@@ -12,7 +12,7 @@ SpreadView : ValuesView {
 	/*
 	spreadSpec: spec describing spread in radians, other specs will be inferred from this
 	initVals: order of values in arrays - [value, center, spread, lo, hi], lo and hi can be nil to autofill from center/spread
-	rangeCenterOffset: offset of "0" position from default (0 o'clock), degrees
+	rangeCenterOffset: offset of "0" position from default (12 o'clock), degrees
 	innerRadiusRatio=0: ratio of inner space
 	outerRadiusRatio=1; ratio of outer edge of spread wedge
 	*/

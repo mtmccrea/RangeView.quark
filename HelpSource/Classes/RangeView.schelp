@@ -1,0 +1,362 @@
+TITLE:: RangeView
+summary:: A range slider whose range is framed in terms of "spread" around a center value.
+categories:: GUI
+related:: Classes/SpreadView, Classes/RotaryView
+
+image::../img/SpreadView.png#SpreadView displaying a 45 degree spread centered at 12 o'clock::
+
+DESCRIPTION::
+link::Classes/RangeView:: doesn't yet have a unique implementation, but will be modeled on
+link::Classes/SpreadView::, which would be considered a special case (and ultimately a subclass)
+of code::RangeView::. In the meantime, code::SpreadView:: will provide that functionality, albeit
+with method and argument names that aren't necessarily suited to thinking about
+the control in terms of "range".
+
+CLASSMETHODS::
+
+METHOD:: new
+(describe method here)
+
+ARGUMENT:: parent
+(describe argument here)
+
+ARGUMENT:: bounds
+(describe argument here)
+
+ARGUMENT:: maxSpread
+(describe argument here)
+
+ARGUMENT:: initVals
+(describe argument here)
+
+ARGUMENT:: rangeCenterOffset
+(describe argument here)
+
+ARGUMENT:: innerRadiusRatio
+(describe argument here)
+
+ARGUMENT:: outerRadiusRatio
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+INSTANCEMETHODS::
+
+METHOD:: outerRadius
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: direction
+(describe method here)
+
+ARGUMENT:: dir
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prOkToSet
+(describe method here)
+
+ARGUMENT:: newcen
+(describe argument here)
+
+ARGUMENT:: newspread
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: initSpecsAndVals
+(describe method here)
+
+ARGUMENT:: maxSpread
+(describe argument here)
+
+ARGUMENT:: initVals
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: loAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: wedgeWidth
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: rangeStartAngle
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: label
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: lo
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: curvalue
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: outerRadiusRatio
+(describe method here)
+
+ARGUMENT:: ratio
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: drawFunc
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prUpdateCenSprd
+(describe method here)
+
+ARGUMENT:: lo
+(describe argument here)
+
+ARGUMENT:: hi
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: init
+(describe method here)
+
+ARGUMENT:: argRangeCenterOffset
+(describe argument here)
+
+ARGUMENT:: argInnerRadiusRatio
+(describe argument here)
+
+ARGUMENT:: argOuterRadiusRatio
+(describe argument here)
+
+ARGUMENT:: maxSpread
+(describe argument here)
+
+ARGUMENT:: initVals
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: calcHandlePnts
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: innerRadius
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: sprd
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: handleThetas
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: range
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: spreadAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: rangeCenterOffset
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: centerAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: defineMouseActions
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: rangeSweepLength
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: curValue
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: handlePnts
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: maxRadius
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: bnds
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: cen
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: center
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: hiAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: hi
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: drawInThisOrder
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prRangeStartAngle
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: valTheta
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prRangeSweepLength
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: curValueAction
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: dirFlag
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: prUpdateLoHi
+(describe method here)
+
+ARGUMENT:: center
+(describe argument here)
+
+ARGUMENT:: spread
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: handle
+(describe method here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: innerRadiusRatio
+(describe method here)
+
+ARGUMENT:: ratio
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+METHOD:: spread
+(describe method here)
+
+ARGUMENT:: deg
+(describe argument here)
+
+ARGUMENT:: broadcast
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+EXAMPLES::
